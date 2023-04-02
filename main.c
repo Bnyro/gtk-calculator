@@ -2,7 +2,13 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "main.h"
+
 GtkEntryBuffer *buffer;
+
+int calculate_expr(const char *expr) {
+  return 0;
+}
 
 static void calculate (GtkWidget *widget, gpointer data)
 {
@@ -11,14 +17,14 @@ static void calculate (GtkWidget *widget, gpointer data)
 
 static void update_text (GtkWidget *widget, gpointer data)
 {
-  char *label = gtk_button_get_label(GTK_BUTTON(widget));
-  char *current_text = gtk_entry_buffer_get_text(buffer);
+  const char *label = gtk_button_get_label(GTK_BUTTON(widget));
+  const char *current_text = gtk_entry_buffer_get_text(buffer);
 
   if (strcmp(label, "C") == 0) {
     gtk_entry_buffer_set_text(buffer, "", -1);
   } else if (strcmp(label, "=") == 0) {
     char* str;
-    int result = calculate_result(current_text);
+    int result = calculate_expr(current_text);
     asprintf(&str, "%i", result);
     gtk_entry_buffer_set_text(buffer, str, -1);
   } else {
@@ -40,10 +46,11 @@ static void activate (GtkApplication *app, gpointer user_data)
   GtkWidget *entry = gtk_entry_new_with_buffer(buffer);
   gtk_editable_set_editable(GTK_EDITABLE(entry), FALSE);
 
-  GtkWidget *button = gtk_button_new_with_label ("Calculate");
-  g_signal_connect (button, "clicked", G_CALLBACK (calculate), NULL);
+  GtkWidget *heading = gtk_label_new("Calculator");
 
   GtkWidget *number_grid = gtk_grid_new();
+  gtk_widget_set_valign(number_grid, GTK_ALIGN_FILL);
+  gtk_widget_set_halign(number_grid, GTK_ALIGN_FILL);
 
   for (int i = 1; i <= 9; i++)
   {
@@ -62,7 +69,7 @@ static void activate (GtkApplication *app, gpointer user_data)
   pack_button(number_grid, ".", 2, 5, 1);
   pack_button(number_grid, "=", 4, 5, 1);
 
-  gtk_box_append(GTK_BOX(main_container), button);
+  gtk_box_append(GTK_BOX(main_container), heading);
   gtk_box_append(GTK_BOX(main_container), entry);
   gtk_box_append(GTK_BOX(main_container), number_grid);
 
@@ -82,10 +89,6 @@ void pack_button(GtkWidget *grid, char *text, int column, int row, int weight)
   GtkWidget *button = gtk_button_new_with_label(text);
   g_signal_connect (button, "clicked", G_CALLBACK (update_text), NULL);
   gtk_grid_attach(GTK_GRID(grid), button, column, row, weight, 1);
-}
-
-int calculate_result(char *expr) {
-  return 0;
 }
 
 int main (int argc, char **argv)
