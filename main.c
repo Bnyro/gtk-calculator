@@ -91,6 +91,15 @@ void pack_button(GtkWidget *grid, char *text, int column, int row, int weight)
   gtk_grid_attach(GTK_GRID(grid), button, column, row, weight, 1);
 }
 
+void load_style()
+{
+  GtkCssProvider *cssProvider = gtk_css_provider_new();
+  gtk_css_provider_load_from_path(cssProvider, "theme.css");
+  gtk_style_context_add_provider_for_screen(gdk_screen_get_default(),
+                               GTK_STYLE_PROVIDER(cssProvider),
+                               GTK_STYLE_PROVIDER_PRIORITY_USER);
+}
+
 int main (int argc, char **argv)
 {
   GtkApplication *app;
