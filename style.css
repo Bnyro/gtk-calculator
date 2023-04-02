@@ -1,3 +1,8 @@
+.main-container {
+    margin: 0 0.5rem;
+}
+
 .heading {
-    font-size: 10rem;
+    font-size: 1.4rem;
+    margin: 0.7rem 0;
 }
