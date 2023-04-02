@@ -6,14 +6,14 @@
 
 GtkEntryBuffer *buffer;
 
-int calculate_expr(const char *expr)
+double calculate_expr(const char *expr)
 {
-  return 0;
-}
-
-static void calculate(GtkWidget *widget, gpointer data)
-{
-  g_print("Hello World\n");
+   char postfix[strlen(expr) + 1]; 
+   convert(expr, postfix);
+   g_print(postfix);
+   int res = evaluate(postfix);
+   g_print("%d", res);
+   return res;
 }
 
 static void update_text(GtkWidget *widget, gpointer data)
@@ -29,7 +29,7 @@ static void update_text(GtkWidget *widget, gpointer data)
   {
     char *str;
     int result = calculate_expr(current_text);
-    asprintf(&str, "%i", result);
+    asprintf(&str, "%d", result);
     gtk_entry_buffer_set_text(buffer, str, -1);
   }
   else
@@ -69,7 +69,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     pack_number_button(number_grid, i);
   }
 
-  char *ops = "/x-+";
+  char *ops = "/*-+";
 
   for (int i = 0; i < strlen(ops); i++)
   {
@@ -109,8 +109,8 @@ void load_style()
   GtkCssProvider *cssProvider = gtk_css_provider_new();
   gtk_css_provider_load_from_path(cssProvider, "style.css");
   gtk_style_context_add_provider_for_display(gdk_display_get_default(),
-                                            GTK_STYLE_PROVIDER(cssProvider),
-                                            GTK_STYLE_PROVIDER_PRIORITY_USER);
+                                             GTK_STYLE_PROVIDER(cssProvider),
+                                             GTK_STYLE_PROVIDER_PRIORITY_USER);
 }
 
 int main(int argc, char **argv)
@@ -124,4 +124,165 @@ int main(int argc, char **argv)
   g_object_unref(app);
 
   return status;
+}
+
+// char stack
+char stack[];
+int top = -1;
+
+void push(char item)
+{
+  stack[++top] = item;
+}
+char pop()
+{
+  return stack[top--];
+}
+
+// returns precedence of operators
+int precedence(char symbol)
+{
+  switch (symbol)
+  {
+  case '+':
+  case '-':
+    return 2;
+    break;
+  case '*':
+  case '/':
+    return 3;
+    break;
+  case '^':
+    return 4;
+    break;
+  case '(':
+  case ')':
+  case '#':
+    return 1;
+    break;
+  }
+}
+
+// check whether the symbol is operator?
+int isOperator(char symbol)
+{
+  switch (symbol)
+  {
+  case '+':
+  case '-':
+  case '*':
+  case '/':
+  case '^':
+  case '(':
+  case ')':
+    return 1;
+    break;
+  default:
+    return 0;
+  }
+}
+// converts infix expression to postfix
+void convert(char *infix, char *postfix)
+{
+  int i, symbol, j = 0;
+  stack[++top] = '#';
+  for (i = 0; i < strlen(infix); i++)
+  {
+    symbol = infix[i];
+    if (isOperator(symbol) == 0)
+    {
+      postfix[j] = symbol;
+      j++;
+    }
+    else
+    {
+      if (symbol == '(')
+      {
+        push(symbol);
+      }
+      else
+      {
+        if (symbol == ')')
+        {
+          while (stack[top] != '(')
+          {
+            postfix[j] = pop();
+            j++;
+          }
+          pop(); // pop out (.
+        }
+        else
+        {
+          if (precedence(symbol) > precedence(stack[top]))
+          {
+            push(symbol);
+          }
+          else
+          {
+            while (precedence(symbol) <= precedence(stack[top]))
+            {
+              postfix[j] = pop();
+              j++;
+            }
+            push(symbol);
+          }
+        }
+      }
+    }
+  }
+  while (stack[top] != '#')
+  {
+    postfix[j] = pop();
+    j++;
+  }
+  postfix[j] = '\0'; // null terminate string.
+}
+// int stack
+int stack_int[25];
+int top_int = -1;
+
+void push_int(int item)
+{
+  stack_int[++top_int] = item;
+}
+
+char pop_int()
+{
+  return stack_int[top_int--];
+}
+// evaluates postfix expression
+int evaluate(char *postfix)
+{
+  char ch;
+  int i = 0, operand1, operand2;
+
+  while ((ch = postfix[i++]) != '\0')
+  {
+    if (isdigit(ch))
+    {
+      push_int(ch - '0'); // Push the operand
+    }
+    else
+    {
+      // Operator,pop two  operands
+      operand2 = pop_int();
+      operand1 = pop_int();
+      switch (ch)
+      {
+      case '+':
+        push_int(operand1 + operand2);
+        break;
+      case '-':
+        push_int(operand1 - operand2);
+        break;
+      case '*':
+        push_int(operand1 * operand2);
+        break;
+      case '/':
+        push_int(operand1 / operand2);
+        break;
+      }
+    }
+  }
+  return stack_int[top_int];
 }
