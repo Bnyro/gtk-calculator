@@ -45,7 +45,7 @@ static void activate(GtkApplication *app, gpointer user_data)
   load_style();
 
   GtkWidget *window = gtk_application_window_new(app);
-  gtk_window_set_title(GTK_WINDOW(window), "Window");
+  gtk_window_set_title(GTK_WINDOW(window), "Calculator");
   gtk_window_set_default_size(GTK_WINDOW(window), 200, 200);
 
   GtkWidget *main_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
@@ -54,6 +54,7 @@ static void activate(GtkApplication *app, gpointer user_data)
   buffer = gtk_entry_buffer_new("", -1);
   GtkWidget *entry = gtk_entry_new_with_buffer(buffer);
   gtk_editable_set_editable(GTK_EDITABLE(entry), FALSE);
+  gtk_widget_add_css_class(entry, "expression");
 
   GtkWidget *heading = gtk_label_new("Calculator");
   gtk_widget_add_css_class(heading, "heading");
@@ -61,8 +62,6 @@ static void activate(GtkApplication *app, gpointer user_data)
   GtkWidget *number_grid = gtk_grid_new();
   gtk_grid_set_row_spacing(GTK_GRID(number_grid), 3);
   gtk_grid_set_column_spacing(GTK_GRID(number_grid), 3);
-  gtk_widget_set_valign(number_grid, GTK_ALIGN_FILL);
-  gtk_widget_set_halign(number_grid, GTK_ALIGN_FILL);
 
   for (int i = 1; i <= 9; i++)
   {
@@ -100,6 +99,8 @@ void pack_number_button(GtkWidget *grid, int number)
 void pack_button(GtkWidget *grid, char *text, int column, int row, int weight)
 {
   GtkWidget *button = gtk_button_new_with_label(text);
+  gtk_widget_set_vexpand(button, true);
+  gtk_widget_set_hexpand(button, true);
   g_signal_connect(button, "clicked", G_CALLBACK(update_text), NULL);
   gtk_grid_attach(GTK_GRID(grid), button, column, row, weight, 1);
 }
